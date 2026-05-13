@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업적 실시간 체커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #090b0e;
+    --surface:  #10131a;
+    --surface2: #161b24;
+    --border:   #252a35;
+    --gold:     #c8993a;
+    --gold-dim: rgba(200,153,58,.15);
+    --green:    #3ecf6e;
+    --green-bg: rgba(62,207,110,.1);
+    --red:      #e05555;
+    --red-bg:   rgba(224,85,85,.1);
+    --blue:     #4a9fd4;
+    --text:     #ccc9be;
+    --muted:    #585c68;
+    --radius:   4px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 1fr 340px;
+    overflow: hidden;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(200,153,58,.07) 0%, transparent 60%);
+  }
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .header-sep { flex: 1; }
+
+  /* 상태 도트 */
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background .3s;
+  }
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.4s infinite; }
+  .status-dot.ocr  { background: var(--gold);  box-shadow: 0 0 6px var(--gold); }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+  .status-label { font-size: 12px; color: var(--muted); letter-spacing: .5px; }
+
+  /* 버튼 */
+  .btn {
+    padding: 6px 16px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: filter .15s;
+  }
+  .btn:hover { filter: brightness(1.15); }
+  .btn-primary { background: var(--gold); color: #08090b; }
+  .btn-danger  { background: #3a1818; color: var(--red); border: 1px solid #5a2020; }
+  .btn:disabled { opacity: .4; pointer-events: none; }
+
+  /* ── 좌측: 화면 미리보기 ── */
+  .panel-preview {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-title {
+    padding: 10px 16px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #06080b;
+  }
+  #previewCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none;
+  }
+  .preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .preview-placeholder .icon { font-size: 40px; opacity: .4; }
+
+  /* 오버레이 캔버스 (감지 박스 그리기) */
+  #overlayImg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: none;
+    pointer-events: none;
+  }
+
+  /* 하단 정보 바 */
+  .info-bar {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .info-item span { color: var(--text); font-family: 'Rajdhani', sans-serif; font-weight: 600; }
+
+  /* ── 우측: 결과 패널 ── */
+  .panel-results {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  /* 요약 */
+  .summary-bar {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .sum-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border-radius: var(--radius);
+    background: var(--surface2);
+  }
+  .sum-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .sum-num.gold  { color: var(--gold); }
+  .sum-num.green { color: var(--green); }
+  .sum-num.red   { color: var(--red); }
+  .sum-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: .5px; }
+
+  /* 진행바 */
+  .progress-track {
+    margin: 0 16px 10px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--green));
+    border-radius: 2px;
+    transition: width .5s ease;
+    width: 0%;
+  }
+
+  /* 카드 목록 */
+  .card-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card-list::-webkit-scrollbar { width: 4px; }
+  .card-list::-webkit-scrollbar-track { background: transparent; }
+  .card-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border-left: 3px solid transparent;
+    transition: border-color .2s;
+    animation: slideIn .2s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateX(8px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  .card.done { border-left-color: var(--green); background: linear-gradient(90deg, var(--green-bg), var(--surface2)); }
+  .card.todo { border-left-color: var(--red);   background: linear-gradient(90deg, var(--red-bg),   var(--surface2)); }
+
+  .card-icon { font-size: 16px; flex-shrink: 0; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-name {
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-desc {
+    font-size: 11px; color: var(--muted); margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-prog {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* 빈 상태 */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+  }
+  .empty-state .icon { font-size: 32px; opacity: .3; }
+
+  /* 에러 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: #2a1010;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    display: none;
+    z-index: 100;
+  }
+  .toast.visible { display: block; animation: fadeIn .2s; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  /* 설정 간격 */
+  .interval-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .interval-wrap input[type=range] {
+    width: 80px;
+    accent-color: var(--gold);
+  }
+  .interval-val { font-family: 'Rajdhani', sans-serif; color: var(--gold); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<header>
+  <span class="logo">Achievement Checker</span>
+  <div class="interval-wrap">
+    <span>캡처 간격</span>
+    <input type="range" id="intervalRange" min="1" max="10" value="3" step="0.5">
+    <span class="interval-val" id="intervalVal">3s</span>
+  </div>
+  <div class="header-sep"></div>
+  <div class="status-dot" id="statusDot"></div>
+  <span class="status-label" id="statusLabel">대기 중</span>
+  <button class="btn btn-primary" id="btnStart">📡 화면 공유 시작</button>
+  <button class="btn btn-danger" id="btnStop" disabled>■ 중지</button>
+</header>
+
+<!-- 좌측: 미리보기 -->
+<div class="panel-preview">
+  <div class="panel-title">
+    <span>📺</span> 화면 캡처 미리보기
+    <span id="previewLabel" style="margin-left:auto;font-size:11px;color:var(--muted)"></span>
+  </div>
+  <div class="preview-container">
+    <div class="preview-placeholder" id="placeholder">
+      <span class="icon">🖥️</span>
+      <span>화면 공유 시작 후 업적 탭을 보여주세요</span>
+    </div>
+    <canvas id="previewCanvas"></canvas>
+    <img id="overlayImg" alt="overlay">
+  </div>
+  <div class="info-bar">
+    <div class="info-item">프레임: <span id="infoFrame">-</span></div>
+    <div class="info-item">변화 감지: <span id="infoChanged">-</span></div>
+    <div class="info-item">OCR 시간: <span id="infoOcr">-</span></div>
+    <div class="info-item">캐시 사용: <span id="infoCached">-</span></div>
+  </div>
+</div>
+
+<!-- 우측: 결과 -->
+<div class="panel-results">
+  <div class="panel-title"><span>🏆</span> 업적 목록</div>
+
+  <div class="summary-bar">
+    <div class="sum-block"><span class="sum-num gold" id="sumTotal">0</span><span class="sum-lbl">전체</span></div>
+    <div class="sum-block"><span class="sum-num green" id="sumDone">0</span><span class="sum-lbl">달성</span></div>
+    <div class="sum-block"><span class="sum-num red" id="sumTodo">0</span><span class="sum-lbl">미달성</span></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="card-list" id="cardList">
+    <div class="empty-state">
+      <span class="icon">📋</span>
+      <span>화면 공유를 시작하면<br>업적이 자동으로 감지됩니다</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 상태 ──────────────────────────────────────────────────────────────────
+let stream       = null;
+let ws           = null;
+let captureTimer = null;
+let frameCount   = 0;
+let changeCount  = 0;
+let cachedCount  = 0;
+
+const video      = document.createElement('video');
+const canvas     = document.getElementById('previewCanvas');
+const ctx        = canvas.getContext('2d');
+
+// ── DOM refs ──────────────────────────────────────────────────────────────
+const btnStart     = document.getElementById('btnStart');
+const btnStop      = document.getElementById('btnStop');
+const statusDot    = document.getElementById('statusDot');
+const statusLabel  = document.getElementById('statusLabel');
+const placeholder  = document.getElementById('placeholder');
+const overlayImg   = document.getElementById('overlayImg');
+const previewLabel = document.getElementById('previewLabel');
+const intervalRange= document.getElementById('intervalRange');
+const intervalVal  = document.getElementById('intervalVal');
+const cardList     = document.getElementById('cardList');
+const sumTotal     = document.getElementById('sumTotal');
+const sumDone      = document.getElementById('sumDone');
+const sumTodo      = document.getElementById('sumTodo');
+const progressFill = document.getElementById('progressFill');
+const infoFrame    = document.getElementById('infoFrame');
+const infoChanged  = document.getElementById('infoChanged');
+const infoOcr      = document.getElementById('infoOcr');
+const infoCached   = document.getElementById('infoCached');
+const toast        = document.getElementById('toast');
+
+// ── 캡처 간격 슬라이더 ───────────────────────────────────────────────────
+intervalRange.addEventListener('input', () => {
+  intervalVal.textContent = intervalRange.value + 's';
+  if (captureTimer) restartCapture();
+});
+
+// ── 화면 공유 시작 ────────────────────────────────────────────────────────
+btnStart.addEventListener('click', async () => {
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 5 },
+      audio: false,
+    });
+
+    video.srcObject = stream;
+    await video.play();
+
+    stream.getVideoTracks()[0].addEventListener('ended', stopAll);
+
+    // WebSocket 연결
+    ws = new WebSocket(`ws://${location.host}/ws`);
+    ws.onopen = () => {
+      setStatus('live', '실시간 분석 중');
+      startCapture();
+    };
+    ws.onmessage = e => handleMessage(JSON.parse(e.data));
+    ws.onerror   = () => showToast('WebSocket 오류 발생');
+    ws.onclose   = () => { if (stream) setStatus('', '연결 끊김'); };
+
+    placeholder.style.display = 'none';
+    canvas.style.display = 'block';
+
+    btnStart.disabled = true;
+    btnStop.disabled  = false;
+
+  } catch (err) {
+    if (err.name !== 'NotAllowedError')
+      showToast('화면 공유 오류: ' + err.message);
+  }
+});
+
+// ── 중지 ─────────────────────────────────────────────────────────────────
+btnStop.addEventListener('click', stopAll);
+
+function stopAll() {
+  clearInterval(captureTimer);
+  captureTimer = null;
+  if (ws) { ws.close(); ws = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  setStatus('', '중지됨');
+  btnStart.disabled = false;
+  btnStop.disabled  = true;
+  overlayImg.style.display = 'none';
+}
+
+// ── 캡처 루프 ──────────────────────────────────────────────────────────────
+function startCapture() {
+  const ms = parseFloat(intervalRange.value) * 1000;
+  captureTimer = setInterval(captureFrame, ms);
+  captureFrame(); // 즉시 1회
+}
+
+function restartCapture() {
+  clearInterval(captureTimer);
+  startCapture();
+}
+
+function captureFrame() {
+  if (!stream || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+  // 영상 → 캔버스 → base64
+  const vw = video.videoWidth  || 1280;
+  const vh = video.videoHeight || 720;
+
+  // 미리보기용 캔버스 업데이트
+  canvas.width  = vw;
+  canvas.height = vh;
+  ctx.drawImage(video, 0, 0, vw, vh);
+
+  // 전송용 (너비 900으로 축소해서 OCR 부하 감소)
+  const scale = Math.min(1, 900 / vw);
+  const tc = document.createElement('canvas');
+  tc.width  = Math.round(vw * scale);
+  tc.height = Math.round(vh * scale);
+  tc.getContext('2d').drawImage(video, 0, 0, tc.width, tc.height);
+  const b64 = tc.toDataURL('image/jpeg', 0.85);
+
+  ws.send(JSON.stringify({ type: 'frame', data: b64 }));
+
+  frameCount++;
+  infoFrame.textContent = frameCount;
+  previewLabel.textContent = `${vw}×${vh}`;
+}
+
+// ── 서버 메시지 처리 ────────────────────────────────────────────────────────
+function handleMessage(msg) {
+  if (msg.type === 'error') { showToast(msg.message); return; }
+  if (msg.type !== 'result') return;
+
+  if (!msg.cached) {
+    changeCount++;
+    infoChanged.textContent = changeCount;
+    infoOcr.textContent = msg.elapsed ? msg.elapsed + 's' : '-';
+  } else {
+    cachedCount++;
+  }
+  infoCached.textContent = cachedCount;
+
+  // 오버레이 이미지 (변화 있을 때만 갱신)
+  if (msg.overlay) {
+    overlayImg.src = msg.overlay;
+    overlayImg.style.display = 'block';
+  }
+
+  renderCards(msg.achievements || [], msg.count || {});
+}
+
+// ── 카드 렌더링 ───────────────────────────────────────────────────────────
+function renderCards(achievements, count) {
+  const total = count.total ?? achievements.length;
+  const done  = count.done  ?? achievements.filter(a => a.completed).length;
+  const todo  = total - done;
+
+  sumTotal.textContent = total;
+  sumDone.textContent  = done;
+  sumTodo.textContent  = todo;
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  progressFill.style.width = pct + '%';
+
+  if (!achievements.length) return;
+
+  cardList.innerHTML = '';
+  achievements.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = `card ${a.completed ? 'done' : 'todo'}`;
+    card.style.animationDelay = i * 40 + 'ms';
+
+    const prog = a.progress ?? (a.percent != null ? a.percent + '%' : '');
+    const desc = a.db_match?.description || a.description || '—';
+
+    card.innerHTML = `
+      <span class="card-icon">${a.completed ? '✅' : '❌'}</span>
+      <div class="card-body">
+        <div class="card-name">${esc(a.name || '(인식 실패)')}</div>
+        <div class="card-desc">${esc(desc)}</div>
+      </div>
+      <span class="card-prog">${esc(prog)}</span>
+    `;
+    cardList.appendChild(card);
+  });
+}
+
+// ── 유틸 ──────────────────────────────────────────────────────────────────
+function setStatus(type, label) {
+  statusDot.className = 'status-dot' + (type ? ' ' + type : '');
+  statusLabel.textContent = label;
+}
+
+function showToast(msg) {
+  toast.textContent = '⚠ ' + msg;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 3000);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
