@@ -56,7 +56,6 @@
   }
   .header-sep { flex: 1; }
 
-  /* 상태 도트 */
   .status-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -68,7 +67,6 @@
   @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
   .status-label { font-size: 12px; color: var(--muted); letter-spacing: .5px; }
 
-  /* 버튼 */
   .btn {
     padding: 6px 16px;
     border-radius: var(--radius);
@@ -86,7 +84,6 @@
   .btn-danger  { background: #3a1818; color: var(--red); border: 1px solid #5a2020; }
   .btn:disabled { opacity: .4; pointer-events: none; }
 
-  /* ── 좌측: 화면 미리보기 ── */
   .panel-preview {
     background: var(--surface);
     border-right: 1px solid var(--border);
@@ -133,7 +130,6 @@
   }
   .preview-placeholder .icon { font-size: 40px; opacity: .4; }
 
-  /* 오버레이 캔버스 (감지 박스 그리기) */
   #overlayImg {
     position: absolute;
     inset: 0;
@@ -143,7 +139,6 @@
     pointer-events: none;
   }
 
-  /* 하단 정보 바 */
   .info-bar {
     padding: 8px 16px;
     border-top: 1px solid var(--border);
@@ -155,7 +150,6 @@
   }
   .info-item span { color: var(--text); font-family: 'Rajdhani', sans-serif; font-weight: 600; }
 
-  /* ── 우측: 결과 패널 ── */
   .panel-results {
     display: flex;
     flex-direction: column;
@@ -163,7 +157,6 @@
     background: var(--surface);
   }
 
-  /* 요약 */
   .summary-bar {
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
@@ -190,7 +183,6 @@
   .sum-num.red   { color: var(--red); }
   .sum-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: .5px; }
 
-  /* 진행바 */
   .progress-track {
     margin: 0 16px 10px;
     height: 3px;
@@ -206,7 +198,6 @@
     width: 0%;
   }
 
-  /* 카드 목록 */
   .card-list {
     flex: 1;
     overflow-y: auto;
@@ -254,7 +245,6 @@
     flex-shrink: 0;
   }
 
-  /* 빈 상태 */
   .empty-state {
     flex: 1;
     display: flex;
@@ -269,7 +259,6 @@
   }
   .empty-state .icon { font-size: 32px; opacity: .3; }
 
-  /* 에러 토스트 */
   .toast {
     position: fixed;
     bottom: 20px; left: 50%;
@@ -285,32 +274,12 @@
   }
   .toast.visible { display: block; animation: fadeIn .2s; }
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
-  /* 설정 간격 */
-  .interval-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .interval-wrap input[type=range] {
-    width: 80px;
-    accent-color: var(--gold);
-  }
-  .interval-val { font-family: 'Rajdhani', sans-serif; color: var(--gold); font-size: 13px; }
 </style>
 </head>
 <body>
 
-<!-- 헤더 -->
 <header>
   <span class="logo">Achievement Checker</span>
-  <div class="interval-wrap">
-    <span>캡처 간격</span>
-    <input type="range" id="intervalRange" min="1" max="10" value="3" step="0.5">
-    <span class="interval-val" id="intervalVal">3s</span>
-  </div>
   <div class="header-sep"></div>
   <div class="status-dot" id="statusDot"></div>
   <span class="status-label" id="statusLabel">대기 중</span>
@@ -318,7 +287,6 @@
   <button class="btn btn-danger" id="btnStop" disabled>■ 중지</button>
 </header>
 
-<!-- 좌측: 미리보기 -->
 <div class="panel-preview">
   <div class="panel-title">
     <span>📺</span> 화면 캡처 미리보기
@@ -336,21 +304,18 @@
     <div class="info-item">프레임: <span id="infoFrame">-</span></div>
     <div class="info-item">변화 감지: <span id="infoChanged">-</span></div>
     <div class="info-item">OCR 시간: <span id="infoOcr">-</span></div>
-    <div class="info-item">캐시 사용: <span id="infoCached">-</span></div>
+    <div class="info-item">캐시: <span id="infoCached">-</span></div>
   </div>
 </div>
 
-<!-- 우측: 결과 -->
 <div class="panel-results">
   <div class="panel-title"><span>🏆</span> 업적 목록</div>
-
   <div class="summary-bar">
     <div class="sum-block"><span class="sum-num gold" id="sumTotal">0</span><span class="sum-lbl">전체</span></div>
     <div class="sum-block"><span class="sum-num green" id="sumDone">0</span><span class="sum-lbl">달성</span></div>
     <div class="sum-block"><span class="sum-num red" id="sumTodo">0</span><span class="sum-lbl">미달성</span></div>
   </div>
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-
   <div class="card-list" id="cardList">
     <div class="empty-state">
       <span class="icon">📋</span>
@@ -362,19 +327,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── 상태 ──────────────────────────────────────────────────────────────────
-let stream       = null;
-let ws           = null;
-let captureTimer = null;
-let frameCount   = 0;
-let changeCount  = 0;
-let cachedCount  = 0;
+const CAPTURE_INTERVAL = 500; // 0.5초 고정
 
-const video      = document.createElement('video');
-const canvas     = document.getElementById('previewCanvas');
-const ctx        = canvas.getContext('2d');
+let stream      = null;
+let ws          = null;
+let animFrame   = null;
+let lastCapture = 0;
+let frameCount  = 0;
+let changeCount = 0;
+let cachedCount = 0;
 
-// ── DOM refs ──────────────────────────────────────────────────────────────
+const video = document.createElement('video');
+const canvas = document.getElementById('previewCanvas');
+const ctx    = canvas.getContext('2d');
+
 const btnStart     = document.getElementById('btnStart');
 const btnStop      = document.getElementById('btnStop');
 const statusDot    = document.getElementById('statusDot');
@@ -382,8 +348,6 @@ const statusLabel  = document.getElementById('statusLabel');
 const placeholder  = document.getElementById('placeholder');
 const overlayImg   = document.getElementById('overlayImg');
 const previewLabel = document.getElementById('previewLabel');
-const intervalRange= document.getElementById('intervalRange');
-const intervalVal  = document.getElementById('intervalVal');
 const cardList     = document.getElementById('cardList');
 const sumTotal     = document.getElementById('sumTotal');
 const sumDone      = document.getElementById('sumDone');
@@ -395,13 +359,6 @@ const infoOcr      = document.getElementById('infoOcr');
 const infoCached   = document.getElementById('infoCached');
 const toast        = document.getElementById('toast');
 
-// ── 캡처 간격 슬라이더 ───────────────────────────────────────────────────
-intervalRange.addEventListener('input', () => {
-  intervalVal.textContent = intervalRange.value + 's';
-  if (captureTimer) restartCapture();
-});
-
-// ── 화면 공유 시작 ────────────────────────────────────────────────────────
 btnStart.addEventListener('click', async () => {
   try {
     stream = await navigator.mediaDevices.getDisplayMedia({
@@ -411,22 +368,16 @@ btnStart.addEventListener('click', async () => {
 
     video.srcObject = stream;
     await video.play();
-
     stream.getVideoTracks()[0].addEventListener('ended', stopAll);
 
-    // WebSocket 연결
     ws = new WebSocket(`ws://${location.host}/ws`);
-    ws.onopen = () => {
-      setStatus('live', '실시간 분석 중');
-      startCapture();
-    };
+    ws.onopen    = () => { setStatus('live', '실시간 분석 중'); startLoop(); };
     ws.onmessage = e => handleMessage(JSON.parse(e.data));
     ws.onerror   = () => showToast('WebSocket 오류 발생');
     ws.onclose   = () => { if (stream) setStatus('', '연결 끊김'); };
 
     placeholder.style.display = 'none';
     canvas.style.display = 'block';
-
     btnStart.disabled = true;
     btnStop.disabled  = false;
 
@@ -436,13 +387,11 @@ btnStart.addEventListener('click', async () => {
   }
 });
 
-// ── 중지 ─────────────────────────────────────────────────────────────────
 btnStop.addEventListener('click', stopAll);
 
 function stopAll() {
-  clearInterval(captureTimer);
-  captureTimer = null;
-  if (ws) { ws.close(); ws = null; }
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  if (ws)     { ws.close(); ws = null; }
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   setStatus('', '중지됨');
   btnStart.disabled = false;
@@ -450,60 +399,57 @@ function stopAll() {
   overlayImg.style.display = 'none';
 }
 
-// ── 캡처 루프 ──────────────────────────────────────────────────────────────
-function startCapture() {
-  const ms = parseFloat(intervalRange.value) * 1000;
-  captureTimer = setInterval(captureFrame, ms);
-  captureFrame(); // 즉시 1회
-}
-
-function restartCapture() {
-  clearInterval(captureTimer);
-  startCapture();
+// ── 캡처 루프 (requestAnimationFrame + 1초 제한) ──────────────────────────
+function startLoop() {
+  lastCapture = 0;
+  function loop(ts) {
+    if (ts - lastCapture >= CAPTURE_INTERVAL) {
+      captureFrame();
+      lastCapture = ts;
+    }
+    animFrame = requestAnimationFrame(loop);
+  }
+  animFrame = requestAnimationFrame(loop);
 }
 
 function captureFrame() {
   if (!stream || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-  // 영상 → 캔버스 → base64
   const vw = video.videoWidth  || 1280;
   const vh = video.videoHeight || 720;
 
-  // 미리보기용 캔버스 업데이트
   canvas.width  = vw;
   canvas.height = vh;
   ctx.drawImage(video, 0, 0, vw, vh);
 
-  // 전송용 (너비 900으로 축소해서 OCR 부하 감소)
-  const scale = Math.min(1, 900 / vw);
+  // 전송용 축소 (OCR 부하 감소)
+  const scale = Math.min(1, 1920 / vw);
   const tc = document.createElement('canvas');
   tc.width  = Math.round(vw * scale);
   tc.height = Math.round(vh * scale);
   tc.getContext('2d').drawImage(video, 0, 0, tc.width, tc.height);
-  const b64 = tc.toDataURL('image/jpeg', 0.85);
+  const b64 = tc.toDataURL('image/jpeg', 1.0);
 
   ws.send(JSON.stringify({ type: 'frame', data: b64 }));
 
   frameCount++;
-  infoFrame.textContent = frameCount;
+  infoFrame.textContent   = frameCount;
   previewLabel.textContent = `${vw}×${vh}`;
 }
 
-// ── 서버 메시지 처리 ────────────────────────────────────────────────────────
 function handleMessage(msg) {
-  if (msg.type === 'error') { showToast(msg.message); return; }
+  if (msg.type === 'error')  { showToast(msg.message); return; }
   if (msg.type !== 'result') return;
 
   if (!msg.cached) {
     changeCount++;
     infoChanged.textContent = changeCount;
-    infoOcr.textContent = msg.elapsed ? msg.elapsed + 's' : '-';
+    infoOcr.textContent     = msg.elapsed ? msg.elapsed + 's' : '-';
   } else {
     cachedCount++;
   }
   infoCached.textContent = cachedCount;
 
-  // 오버레이 이미지 (변화 있을 때만 갱신)
   if (msg.overlay) {
     overlayImg.src = msg.overlay;
     overlayImg.style.display = 'block';
@@ -512,7 +458,6 @@ function handleMessage(msg) {
   renderCards(msg.achievements || [], msg.count || {});
 }
 
-// ── 카드 렌더링 ───────────────────────────────────────────────────────────
 function renderCards(achievements, count) {
   const total = count.total ?? achievements.length;
   const done  = count.done  ?? achievements.filter(a => a.completed).length;
@@ -532,7 +477,7 @@ function renderCards(achievements, count) {
     card.className = `card ${a.completed ? 'done' : 'todo'}`;
     card.style.animationDelay = i * 40 + 'ms';
 
-    const prog = a.progress ?? (a.percent != null ? a.percent + '%' : '');
+    const prog = a.progress ?? '';
     const desc = a.db_match?.description || a.description || '—';
 
     card.innerHTML = `
@@ -547,9 +492,8 @@ function renderCards(achievements, count) {
   });
 }
 
-// ── 유틸 ──────────────────────────────────────────────────────────────────
 function setStatus(type, label) {
-  statusDot.className = 'status-dot' + (type ? ' ' + type : '');
+  statusDot.className   = 'status-dot' + (type ? ' ' + type : '');
   statusLabel.textContent = label;
 }
 
