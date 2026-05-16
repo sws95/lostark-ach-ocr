@@ -285,6 +285,7 @@
   <span class="status-label" id="statusLabel">대기 중</span>
   <button class="btn btn-primary" id="btnStart">📡 화면 공유 시작</button>
   <button class="btn btn-danger" id="btnStop" disabled>■ 중지</button>
+  <button class="btn" id="btnSave" style="background:#1a2a1a;color:#3ecf6e;border:1px solid #3ecf6e;">💾 엑셀 저장 (<span id="saveCount">0</span>)</button>
 </header>
 
 <div class="panel-preview">
@@ -337,7 +338,51 @@ let frameCount  = 0;
 let changeCount = 0;
 let cachedCount = 0;
 
-const video = document.createElement('video');
+const btnSave    = document.getElementById('btnSave');
+const saveCount  = document.getElementById('saveCount');
+
+// 누적 업적 저장소 (이름 기준 중복 제거)
+let allAchievements = {};
+
+btnSave.addEventListener('click', downloadExcel);
+
+function accumulateAchievements(achievements) {
+  achievements.forEach(a => {
+    if (a.name && a.name.trim()) {
+      allAchievements[a.name] = a;
+    }
+  });
+  saveCount.textContent = Object.keys(allAchievements).length;
+}
+
+function downloadExcel() {
+  const rows = Object.values(allAchievements);
+  if (!rows.length) { showToast('저장할 업적이 없습니다'); return; }
+
+  // CSV 생성
+  const header = ['업적 이름', '설명', '완료 여부', '진행도'];
+  const lines  = [header.join(',')];
+  rows.forEach(a => {
+    const cols = [
+      `"${(a.name || '').replace(/"/g, '""')}"`,
+      `"${(a.description || '').replace(/"/g, '""')}"`,
+      a.completed ? '완료' : '미완료',
+      `"${a.progress || ''}"`,
+    ];
+    lines.push(cols.join(','));
+  });
+
+  const bom  = '\uFEFF';  // 한글 깨짐 방지
+  const blob = new Blob([bom + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `achievements_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${rows.length}개 업적 저장 완료`);
+}
+const video  = document.createElement('video');
 const canvas = document.getElementById('previewCanvas');
 const ctx    = canvas.getContext('2d');
 
@@ -393,6 +438,7 @@ function stopAll() {
   if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
   if (ws)     { ws.close(); ws = null; }
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  panelRect = null;
   setStatus('', '중지됨');
   btnStart.disabled = false;
   btnStop.disabled  = true;
@@ -412,6 +458,8 @@ function startLoop() {
   animFrame = requestAnimationFrame(loop);
 }
 
+let panelRect = null; // 서버에서 받은 업적창 좌표
+
 function captureFrame() {
   if (!stream || !ws || ws.readyState !== WebSocket.OPEN) return;
 
@@ -422,15 +470,25 @@ function captureFrame() {
   canvas.height = vh;
   ctx.drawImage(video, 0, 0, vw, vh);
 
-  // 전송용 축소 (OCR 부하 감소)
-  const scale = Math.min(1, 1920 / vw);
   const tc = document.createElement('canvas');
-  tc.width  = Math.round(vw * scale);
-  tc.height = Math.round(vh * scale);
-  tc.getContext('2d').drawImage(video, 0, 0, tc.width, tc.height);
-  const b64 = tc.toDataURL('image/jpeg', 1.0);
 
-  ws.send(JSON.stringify({ type: 'frame', data: b64 }));
+  if (panelRect) {
+    // 패널 좌표 알고 있으면 크롭해서 전송
+    const { x, y, w, h } = panelRect;
+    tc.width  = w;
+    tc.height = h;
+    tc.getContext('2d').drawImage(video, x, y, w, h, 0, 0, w, h);
+    const b64 = tc.toDataURL('image/jpeg', 1.0);
+    ws.send(JSON.stringify({ type: 'frame_crop', data: b64 }));
+  } else {
+    // 패널 좌표 모르면 전체 화면 전송
+    const scale = Math.min(1, 1920 / vw);
+    tc.width  = Math.round(vw * scale);
+    tc.height = Math.round(vh * scale);
+    tc.getContext('2d').drawImage(video, 0, 0, tc.width, tc.height);
+    const b64 = tc.toDataURL('image/jpeg', 1.0);
+    ws.send(JSON.stringify({ type: 'frame_full', data: b64 }));
+  }
 
   frameCount++;
   infoFrame.textContent   = frameCount;
@@ -438,7 +496,19 @@ function captureFrame() {
 }
 
 function handleMessage(msg) {
-  if (msg.type === 'error')  { showToast(msg.message); return; }
+  if (msg.type === 'error') { showToast(msg.message); return; }
+
+  // 패널 좌표 수신
+  if (msg.type === 'panel_rect') {
+    panelRect = { x: msg.x, y: msg.y, w: msg.w, h: msg.h };
+    console.log('패널 좌표 수신:', panelRect);
+    return;
+  }
+  if (msg.type === 'panel_not_found') {
+    panelRect = null;
+    return;
+  }
+
   if (msg.type !== 'result') return;
 
   if (!msg.cached) {
@@ -459,6 +529,7 @@ function handleMessage(msg) {
 }
 
 function renderCards(achievements, count) {
+  accumulateAchievements(achievements);
   const total = count.total ?? achievements.length;
   const done  = count.done  ?? achievements.filter(a => a.completed).length;
   const todo  = total - done;
