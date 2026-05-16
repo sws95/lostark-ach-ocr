@@ -8,4 +8,4 @@ lostark-ach-ocr
 
 현재 ocr 문제로 언어 잘못 인식 하는 경우가 있는데 db 생기면 해결 가능 할 것으로 보임
 
-![데모 화면](./img/demo.png)
+![데모 화면](./demo.png)
