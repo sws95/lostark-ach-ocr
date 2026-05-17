@@ -1,26 +1,406 @@
 {
-  "우리의 행복했던 시간": {
-    "category": "섬",
-    "description": "꿈꾸는 추억의 섬의 이야기를 모두 확인하기"
+  "1040058": {
+    "id": 1040058,
+    "name": "회복된 운명",
+    "type": "성취",
+    "category": "모험 > 일반",
+    "note": "",
+    "description": [
+      "실종된 토냐 찾기"
+    ],
+    "steps": [
+      "'해독의 열쇠' 퀘스트 완료"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_04_55.webp",
+    "image_local": "achievement_icons/1040058_achieve_04_55.webp"
   },
-  "마침내 이룬 소원!": {
-    "category": "퀘스트",
-    "description": "퀘스트 '[조사] 아카테스' 완료하기"
+  "1060050": {
+    "id": 1060050,
+    "name": "하늘에서 슈고가 빗발친다!",
+    "type": "성취",
+    "category": "모험 > 에포나 의뢰",
+    "note": "",
+    "description": [
+      "시끄럽고, 울리고, 어지러워! 평판 최대 포인트 달성"
+    ],
+    "steps": [
+      "보상:",
+      "- 원정대 경험치"
+    ],
+    "rewards": [],
+    "image_url": "https://lostarkcodex.com/icons/achieve_07_57.webp",
+    "image_local": "achievement_icons/1060050_achieve_07_57.webp"
   },
-  "신병 받아라!": {
-    "category": "퀘스트",
-    "description": "퀘스트 '도전! 가디언 조사관' 완료하기"
+  "2030049": {
+    "id": 2030049,
+    "name": "황폐한 대지에 재처럼 쌓이는 인연",
+    "type": "성취",
+    "category": "캐릭터 > 교류",
+    "note": "",
+    "description": [
+      "쿠르잔 남부 사람들에게 신뢰받기",
+      "쿠르잔 남부 사람들에게 신뢰받기",
+      "쿠르잔 남부 사람들에게 신뢰받기",
+      "쿠르잔 남부 사람들에게 신뢰받기"
+    ],
+    "steps": [
+      "호감도 신뢰 단계 달성",
+      "호감도 신뢰 단계 달성",
+      "호감도 신뢰 단계 달성",
+      "호감도 신뢰 단계 달성"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_06_34.webp",
+    "image_local": "achievement_icons/2030049_achieve_06_34.webp"
   },
-  "자, 이제 시작이야": {
-    "category": "퀘스트",
-    "description": "퀘스트 '새로운 파트너' 완료하기"
+  "4020037": {
+    "id": 4020037,
+    "name": "하늘에서 미사일이 비처럼 내려와",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:헌터",
+    "note": "",
+    "description": [
+      "블래스터 각성 스킬 '미사일 포화' 사용하기"
+    ],
+    "steps": [
+      "미사일 포화 사용 1000회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_10_4.webp",
+    "image_local": "achievement_icons/4020037_achieve_10_4.webp"
   },
-  "야만온 어디 있는걸까...": {
-    "category": "섬",
-    "description": "기억의 섬에서 10분간 채류하기"
+  "4020060": {
+    "id": 4020060,
+    "name": "하늘의 심판을 내리는 자",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:마법사",
+    "note": "",
+    "description": [
+      "서머너 스킬 '고대의 창' 사용하기"
+    ],
+    "steps": [
+      "고대의 창 사용 1000회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_08_8.webp",
+    "image_local": "achievement_icons/4020060_achieve_08_8.webp"
   },
-  "심연의 끝을 마주한 자": {
-    "category": "여정",
-    "description": "로스트아크 1부 여정 마무리하기"
+  "4020077": {
+    "id": 4020077,
+    "name": "힘을... 개방시켜라!",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:무도가",
+    "note": "",
+    "description": [
+      "기공사 각성 스킬 '극상마섬광' 사용하기"
+    ],
+    "steps": [
+      "극상마섬광 사용 1000회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_07_22.webp",
+    "image_local": "achievement_icons/4020077_achieve_07_22.webp"
+  },
+  "4020189": {
+    "id": 4020189,
+    "name": "하늘을 여는 자",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:무도가",
+    "note": "",
+    "description": [
+      "브레이커 각성 스킬 '천문격파' 사용하기"
+    ],
+    "steps": [
+      "사용 1000 회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_15_183.webp",
+    "image_local": "achievement_icons/4020189_achieve_15_183.webp"
+  },
+  "4020231": {
+    "id": 4020231,
+    "name": "하늘에서 하얀 죽음이",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:헌터",
+    "note": "",
+    "description": [
+      "블래스터 초각성 스킬",
+      "사용하기"
+    ],
+    "steps": [
+      "사용 1000 회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_16_73.webp",
+    "image_local": "achievement_icons/4020231_achieve_16_73.webp"
+  },
+  "4020256": {
+    "id": 4020256,
+    "name": "하늘을 밟는 자",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:무도가",
+    "note": "",
+    "description": [
+      "기공사 초각성 스킬",
+      "사용하기"
+    ],
+    "steps": [
+      "사용 1000 회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_16_96.webp",
+    "image_local": "achievement_icons/4020256_achieve_16_96.webp"
+  },
+  "4020408": {
+    "id": 4020408,
+    "name": "하늘이 응답하리라",
+    "type": "성취",
+    "category": "캐릭터 > 클래스:전사",
+    "note": "",
+    "description": [
+      "발키리 초각성기 '",
+      "' 사용하기"
+    ],
+    "steps": [
+      "<$MACRO Achievement_Skill @1:4020408 @2:1 @3:0/> 사용 <$MACRO Achievement_Count @1:4020408 @2:1 @3:0/> 회"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_17_4.webp",
+    "image_local": "achievement_icons/4020408_achieve_17_4.webp"
+  },
+  "6070128": {
+    "id": 6070128,
+    "name": "황혼이 지는 서고의 비밀",
+    "type": "성취",
+    "category": "모험 > 대륙:쿠르잔 남부",
+    "note": "",
+    "description": [
+      "성물과 관련된 단서 찾아보기"
+    ],
+    "steps": [
+      "성물의 단서가 되는 지도 찾기"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_15_204.webp",
+    "image_local": "achievement_icons/6070128_achieve_15_204.webp"
+  },
+  "6130310": {
+    "id": 6130310,
+    "name": "하늘에서 크고 멋진 것이 내려와",
+    "type": "성취",
+    "category": "히든 > 전체",
+    "note": "숨겨진 업적",
+    "description": [
+      "아브렐슈드의 다양한 운석을 경험하기",
+      "아브렐슈드의 다양한 운석을 경험하기",
+      "아브렐슈드의 다양한 운석을 경험하기",
+      "아브렐슈드의 다양한 운석을 경험하기",
+      "아브렐슈드의 다양한 운석을 경험하기",
+      "아브렐슈드의 다양한 운석을 경험하기"
+    ],
+    "steps": [
+      "구형 몽환 메테오의 타겟이 되기",
+      "팔면체 몽환 메테오의 타겟이 되기",
+      "십이면체 몽환 메테오의 타겟이 되기",
+      "별모양 몽환 메테오의 타겟이 되기",
+      "작은 중력홀의 타겟이 되기",
+      "큰 중력홀의 타겟이 되기"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_14_131.webp",
+    "image_local": "achievement_icons/6130310_achieve_14_131.webp"
+  },
+  "6130462": {
+    "id": 6130462,
+    "name": "힘을 합쳐 위기를 뛰어넘다",
+    "type": "성취",
+    "category": "공격대 > 카제로스 레이드",
+    "note": "",
+    "description": [
+      "의 특정 패턴을 완벽하게 공략하기",
+      "(520 EXP)"
+    ],
+    "steps": [
+      "'",
+      "회 공략하기",
+      "(520 EXP)",
+      "'",
+      "회 공략하기",
+      "(670 EXP)",
+      "'",
+      "회 공략하기",
+      "(820 EXP)",
+      "'",
+      "회 공략하기",
+      "(1120 EXP)",
+      "'",
+      "회 공략하기"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_16_267.webp",
+    "image_local": "achievement_icons/6130462_achieve_16_267.webp"
+  },
+  "10010117": {
+    "id": 10010117,
+    "name": "하늘에서 만난 사람들",
+    "type": "성취",
+    "category": "히든 > 전체",
+    "note": "숨겨진 업적",
+    "description": [
+      "엘가시아 사람들에게 신뢰받기",
+      "엘가시아 사람들에게 신뢰받기",
+      "엘가시아 사람들에게 신뢰받기"
+    ],
+    "steps": [
+      "티엔 호감도 신뢰 달성",
+      "파파 호감도 신뢰 달성",
+      "아자키엘 호감도 신뢰 달성"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      },
+      {
+        "name": "디오게네스 카드",
+        "icon_url": "https://lostarkcodex.com/icons/use_2_13.webp",
+        "icon_local": "achievement_icons/reward_use_2_13.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_06_44.webp",
+    "image_local": "achievement_icons/10010117_achieve_06_44.webp"
+  },
+  "10013003": {
+    "id": 10013003,
+    "name": "황홀하게 죽여준다더니...",
+    "type": "성취",
+    "category": "위업 > 위업",
+    "note": "",
+    "description": [
+      "[군단장 레이드 : 헬] 욕망군단장 비아키스를 토벌하기"
+    ],
+    "steps": [
+      "[헬] 욕망군단장 비아키스 토벌"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      },
+      {
+        "name": "욕망의 메아리",
+        "icon_url": "https://lostarkcodex.com/icons/use_1_255.webp",
+        "icon_local": "achievement_icons/reward_use_1_255.webp"
+      },
+      {
+        "name": "",
+        "icon_url": "https://lostarkcodex.com/icons/use_30.webp",
+        "icon_local": "achievement_icons/reward_use_30.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_14_99.webp",
+    "image_local": "achievement_icons/10013003_achieve_14_99.webp"
+  },
+  "23000018": {
+    "id": 23000018,
+    "name": "하롱하롱 지고, 소담하게 맺힐",
+    "type": "성취",
+    "category": "모험 > 기억의 오르골",
+    "note": "",
+    "description": [
+      "마지막 연주 감상하기"
+    ],
+    "steps": [
+      "'화불재양, 돌아갈 수 없더라도' 퀘스트 완료"
+    ],
+    "rewards": [
+      {
+        "name": "원정대 경험치",
+        "icon_url": "https://lostarkcodex.com/icons/etc_17.webp",
+        "icon_local": "achievement_icons/reward_etc_17.webp"
+      },
+      {
+        "name": "",
+        "icon_url": "https://lostarkcodex.com/icons/use_30.webp",
+        "icon_local": "achievement_icons/reward_use_30.webp"
+      }
+    ],
+    "image_url": "https://lostarkcodex.com/icons/achieve_15_169.webp",
+    "image_local": "achievement_icons/23000018_achieve_15_169.webp"
   }
 }
