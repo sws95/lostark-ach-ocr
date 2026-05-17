@@ -13,19 +13,13 @@ import cv2
 import numpy as np
 from paddleocr import PaddleOCR
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 app = FastAPI()
 
 print("PaddleOCR 로드 중...")
-reader = PaddleOCR(
-    use_textline_orientation=False,
-    lang="korean",
-    use_doc_orientation_classify=False,
-    use_doc_unwarping=False,
-    text_recognition_model_name="korean_PP-OCRv5_mobile_rec"
-
-)
+reader = PaddleOCR(use_textline_orientation=False, lang="korean",
+                   use_doc_orientation_classify=False, use_doc_unwarping=False)
 print("PaddleOCR 로드 완료")
 
 DB_PATH = Path(__file__).parent / "achievements_db.json"
@@ -36,6 +30,20 @@ HTML_PATH = Path(__file__).parent / "index.html"
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return HTML_PATH.read_text(encoding="utf-8")
+
+@app.get("/api/achievements")
+async def get_achievements():
+    return JSONResponse(content=ACHIEVEMENT_DB)
+
+print("PaddleOCR 로드 중...")
+reader = PaddleOCR(use_textline_orientation=False, lang="korean",
+                   use_doc_orientation_classify=False, use_doc_unwarping=False)
+print("PaddleOCR 로드 완료")
+
+DB_PATH = Path(__file__).parent / "achievements_db.json"
+ACHIEVEMENT_DB = json.loads(DB_PATH.read_text(encoding="utf-8")) if DB_PATH.exists() else {}
+
+HTML_PATH = Path(__file__).parent / "index.html"
 
 
 # ── 이미지 유틸 ──────────────────────────────────────────────────────────────

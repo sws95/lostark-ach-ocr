@@ -9,7 +9,7 @@ import time
 import os
 import openpyxl
 
-EXCEL_FILE   = "lostarc2.xlsx"
+EXCEL_FILE   = "lostarc.xlsx"
 OUTPUT_FILE  = "achievements_db.json"
 IMG_DIR      = "achievement_icons"
 BASE_URL     = "https://lostarkcodex.com/kr/achievement/{id}/"
@@ -85,44 +85,82 @@ def parse_achievement(html, ach_id):
 
         def get_texts_between(start_hr, end_hr=None):
             texts = []
+            current_line = ""
             for elem in start_hr.next_siblings:
                 if elem == end_hr or elem.name == "hr":
                     break
                 if isinstance(elem, str):
-                    t = elem.strip()
+                    current_line += elem
+                elif elem.name == "a":
+                    current_line += elem.get_text(strip=True)
+                elif elem.name == "br":
+                    t = current_line.strip()
                     if t:
                         texts.append(t)
+                    current_line = ""
+            t = current_line.strip()
+            if t:
+                texts.append(t)
             return texts
 
         if len(hrs) >= 1:
             description = get_texts_between(hrs[0], hrs[1] if len(hrs) > 1 else None)
         if len(hrs) >= 2:
-            steps = get_texts_between(hrs[1], hrs[2] if len(hrs) > 2 else None)
-        if len(hrs) >= 3:
-            reward_names = []
-            for elem in hrs[2].next_siblings:
-                if isinstance(elem, str):
+            # hr[1] 다음이 보상인지 steps인지 확인
+            next_text = ""
+            for elem in hrs[1].next_siblings:
+                if isinstance(elem, str) and elem.strip():
+                    next_text = elem.strip()
+                    break
+            if len(hrs) >= 3:
+                steps = get_texts_between(hrs[1], hrs[2])
+            elif next_text != "보상:":
+                steps = get_texts_between(hrs[1])
+
+        reward_hr = hrs[2] if len(hrs) >= 3 else (hrs[1] if len(hrs) >= 2 and any(
+            isinstance(e, str) and e.strip() == "보상:" for e in hrs[1].next_siblings
+        ) else None)
+        if reward_hr is not None:
+            rewards = []
+            current_icon = {"url": "", "local": "", "quantity": "", "oldtitle": ""}
+
+            for elem in reward_hr.next_siblings:
+                if hasattr(elem, "name") and elem.name == "div" and elem.get("class") and "iconset_wrapper_medium" in elem.get("class", []):
+                    icon_div = elem.find("div", class_="icon_wrapper_medium")
+                    if icon_div:
+                        current_icon["oldtitle"] = icon_div.get("oldtitle", "")
+                        img = icon_div.find("img", class_="list_icon_medium")
+                        if img:
+                            src = img["src"]
+                            icon_url = src if src.startswith("http") else f"https://lostarkcodex.com{src}"
+                            icon_local = f"{IMG_DIR}/reward_{icon_url.split('/')[-1]}"
+                            download_image(icon_url, icon_local)
+                            current_icon["url"] = icon_url
+                            current_icon["local"] = icon_local
+                    qty_div = elem.find("div", class_="quantity")
+                    current_icon["quantity"] = qty_div.get_text(strip=True) if qty_div else ""
+
+                elif isinstance(elem, str):
                     t = elem.strip().lstrip("- ").strip()
                     if t and t != "보상:":
-                        reward_names.append(t)
+                        rewards.append({
+                            "name": t,
+                            "quantity": current_icon["quantity"],
+                            "icon_url": current_icon["url"],
+                            "icon_local": current_icon["local"],
+                        })
+                        current_icon = {"url": "", "local": "", "quantity": "", "oldtitle": ""}
 
-            reward_icons = []
-            for wrapper in hrs[2].find_all_next("div", class_="icon_wrapper_medium"):
-                img = wrapper.find("img", class_="list_icon_medium")
-                rname = wrapper.get("oldtitle", "")
-                if img:
-                    src = img["src"]
-                    icon_url = src if src.startswith("http") else f"https://lostarkcodex.com{src}"
-                    icon_fname = f"{IMG_DIR}/reward_{icon_url.split('/')[-1]}"
-                    download_image(icon_url, icon_fname)
-                    reward_icons.append({"name": rname, "icon_url": icon_url, "icon_local": icon_fname})
-
-            for i, icon in enumerate(reward_icons):
-                rewards.append({
-                    "name": reward_names[i] if i < len(reward_names) else icon["name"],
-                    "icon_url": icon["icon_url"],
-                    "icon_local": icon["icon_local"],
-                })
+                elif hasattr(elem, "name") and elem.name == "a":
+                    name_text = "".join(c for c in elem.children if isinstance(c, str)).strip()
+                    if name_text:
+                        rewards.append({
+                            "name": name_text,
+                            "quantity": current_icon["quantity"],
+                            "icon_url": current_icon["url"],
+                            "icon_local": current_icon["local"],
+                        })
+                        current_icon = {"url": "", "local": "", "quantity": "", "oldtitle": ""}
 
     return {
         "id":          ach_id,

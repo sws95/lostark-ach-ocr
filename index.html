@@ -228,7 +228,82 @@
   .card.done { border-left-color: var(--green); background: linear-gradient(90deg, var(--green-bg), var(--surface2)); }
   .card.todo { border-left-color: var(--red);   background: linear-gradient(90deg, var(--red-bg),   var(--surface2)); }
 
-  .card-icon { font-size: 16px; flex-shrink: 0; }
+  /* ── 탭 ── */
+  .tab-btn {
+    padding: 6px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tab-btn.active { background: var(--gold-dim); color: var(--gold); border-color: var(--gold); }
+  .tab-btn:hover:not(.active) { color: var(--text); border-color: var(--text); }
+
+  /* ── DB 목록 탭 ── */
+  .db-panel {
+    grid-column: 1 / -1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .db-panel.active { display: flex; }
+  .db-toolbar {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .db-toolbar input, .db-toolbar select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+  }
+  .db-toolbar input { flex: 1; min-width: 200px; }
+  .db-toolbar input:focus, .db-toolbar select:focus { border-color: var(--gold); }
+  .db-count { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .db-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .db-list::-webkit-scrollbar { width: 4px; }
+  .db-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .db-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--border);
+  }
+  .db-card.done { border-left-color: var(--green); }
+  .db-card.todo { border-left-color: var(--muted); }
+  .db-card img { width: 32px; height: 32px; border-radius: 2px; flex-shrink: 0; }
+  .db-card-body { flex: 1; min-width: 0; }
+  .db-card-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .db-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .db-card-status { font-size: 11px; flex-shrink: 0; }
   .card-body { flex: 1; min-width: 0; }
   .card-name {
     font-size: 13px; font-weight: 500;
@@ -280,6 +355,8 @@
 
 <header>
   <span class="logo">Achievement Checker</span>
+  <button class="tab-btn active" id="tabChecker">📡 실시간 체커</button>
+  <button class="tab-btn" id="tabDb">📋 DB 목록</button>
   <div class="header-sep"></div>
   <div class="status-dot" id="statusDot"></div>
   <span class="status-label" id="statusLabel">대기 중</span>
@@ -326,6 +403,23 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- DB 목록 탭 -->
+<div class="db-panel" id="dbPanel">
+  <div class="db-toolbar">
+    <input type="text" id="dbSearch" placeholder="🔍 업적 이름 검색...">
+    <select id="dbCategory">
+      <option value="">전체 카테고리</option>
+    </select>
+    <select id="dbStatus">
+      <option value="">전체</option>
+      <option value="done">완료</option>
+      <option value="todo">미완료</option>
+    </select>
+    <span class="db-count" id="dbCount">0개</span>
+  </div>
+  <div class="db-list" id="dbList"></div>
+</div>
 
 <script>
 const CAPTURE_INTERVAL = 500; // 0.5초 고정
@@ -445,7 +539,84 @@ function stopAll() {
   overlayImg.style.display = 'none';
 }
 
-// ── 캡처 루프 (requestAnimationFrame + 1초 제한) ──────────────────────────
+// ── 탭 전환 ──────────────────────────────────────────────────────────────────
+const tabChecker  = document.getElementById('tabChecker');
+const tabDb       = document.getElementById('tabDb');
+const dbPanel     = document.getElementById('dbPanel');
+const panelPreview  = document.querySelector('.panel-preview');
+const panelResults  = document.querySelector('.panel-results');
+
+tabChecker.addEventListener('click', () => {
+  tabChecker.classList.add('active');
+  tabDb.classList.remove('active');
+  dbPanel.classList.remove('active');
+  panelPreview.style.display = '';
+  panelResults.style.display = '';
+});
+
+tabDb.addEventListener('click', () => {
+  tabDb.classList.add('active');
+  tabChecker.classList.remove('active');
+  dbPanel.classList.add('active');
+  panelPreview.style.display = 'none';
+  panelResults.style.display = 'none';
+  loadDb();
+});
+
+// ── DB 로드 ───────────────────────────────────────────────────────────────────
+let dbData = null;
+
+async function loadDb() {
+  if (!dbData) {
+    const res = await fetch('/api/achievements');
+    dbData = await res.json();
+    // 카테고리 목록 추출
+    const cats = [...new Set(Object.values(dbData).map(a => a.category).filter(Boolean))].sort();
+    const sel = document.getElementById('dbCategory');
+    cats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+  renderDb();
+}
+
+function renderDb() {
+  const search   = document.getElementById('dbSearch').value.toLowerCase();
+  const category = document.getElementById('dbCategory').value;
+  const status   = document.getElementById('dbStatus').value;
+  const list     = document.getElementById('dbList');
+
+  let items = Object.values(dbData);
+
+  if (search)   items = items.filter(a => a.name.toLowerCase().includes(search));
+  if (category) items = items.filter(a => a.category === category);
+  if (status === 'done') items = items.filter(a => allAchievements[a.name]?.completed);
+  if (status === 'todo') items = items.filter(a => !allAchievements[a.name]?.completed);
+
+  document.getElementById('dbCount').textContent = `${items.length}개`;
+  list.innerHTML = '';
+
+  items.forEach(a => {
+    const done = allAchievements[a.name]?.completed;
+    const card = document.createElement('div');
+    card.className = `db-card ${done ? 'done' : 'todo'}`;
+    card.innerHTML = `
+      <img src="${esc(a.image_url || '')}" alt="" onerror="this.style.display='none'">
+      <div class="db-card-body">
+        <div class="db-card-name">${esc(a.name)}</div>
+        <div class="db-card-meta">${esc(a.category || '')} ${a.description?.[0] ? '· ' + esc(a.description[0]) : ''}</div>
+      </div>
+      <span class="db-card-status">${done ? '✅' : '—'}</span>
+    `;
+    list.appendChild(card);
+  });
+}
+
+document.getElementById('dbSearch').addEventListener('input', renderDb);
+document.getElementById('dbCategory').addEventListener('change', renderDb);
+document.getElementById('dbStatus').addEventListener('change', renderDb);
 function startLoop() {
   lastCapture = 0;
   function loop(ts) {
